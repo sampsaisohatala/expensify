@@ -6,8 +6,6 @@ import 'normalize.css/normalize.css';
 import './styles/styles.scss';
 
 import { addExpense } from './actions/expenses';
-import { setTextFilter } from './actions/filters';
-import getVisibleExpenses from './selectors/expenses';
 
 // import Practice from './playground/hoc';
 
@@ -16,19 +14,24 @@ const store = configureStore();
 store.dispatch(
    addExpense({
       description: 'Water bill',
-      amount: 69,
+      amount: 2400,
+      createdAt: 1000,
    })
 );
 store.dispatch(
    addExpense({
       description: 'Gas bill',
-      amount: 69,
+      amount: 6900,
+      createdAt: 100,
    })
 );
-
-const state = store.getState();
-const visibleExpenses = getVisibleExpenses(state.expenses, state.filters);
-// console.log(visibleExpenses);
+store.dispatch(
+   addExpense({
+      description: 'Rent',
+      amount: 75000,
+      createdAt: 900,
+   })
+);
 
 const App = () => {
    return (
