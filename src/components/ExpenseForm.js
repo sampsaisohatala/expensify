@@ -4,28 +4,28 @@ import { SingleDatePicker } from 'react-dates';
 import 'react-dates/lib/css/_datepicker.css';
 import 'react-dates/initialize';
 
-const ExpenseForm = () => {
+const ExpenseForm = (props) => {
    const [description, setDescription] = useState('');
    const [amount, setAmount] = useState('');
    const [createdAt, setCreatedAt] = useState(moment());
    const [calenderFocused, setCalenderFocused] = useState(false);
    const [note, setNote] = useState('');
+   const [error, setError] = useState('');
 
    const onDescriptionChange = (e) => {
       setDescription(e.target.value);
    };
 
    const onAmountChange = (e) => {
-      console.log('onAmountChange');
       const amount = e.target.value;
-      if (amount.match(/^\d*(\.\d{0,2})?$/)) {
+      if (!amount || amount.match(/^\d{1,}(\.\d{0,2})?$/)) {
          // regular expression -> https://regex101.com/
          setAmount(amount);
       }
    };
 
    const onDateChange = (createdAt) => {
-      setCreatedAt(createdAt);
+      if (createdAt) setCreatedAt(createdAt);
    };
 
    const onFocusChange = ({ focused }) => {
@@ -36,10 +36,26 @@ const ExpenseForm = () => {
       setNote(e.target.value);
    };
 
+   const onSubmit = (e) => {
+      e.preventDefault();
+
+      if (!description || !amount) {
+         setError('Please provide description and amount.');
+      } else {
+         setError('');
+         props.onSubmit({
+            description,
+            amount: parseFloat(amount, 10) * 100,
+            createdAt: createdAt.valueOf(),
+            note,
+         });
+      }
+   };
+
    return (
       <div>
-         <h3>Expense form</h3>
-         <form>
+         {error && <p>{error}</p>}
+         <form onSubmit={onSubmit}>
             <input type="text" placeholder="Description" autoFocus value={description} onChange={onDescriptionChange} />
             <input type="number" placeholder="Amount" value={amount} onChange={onAmountChange} />
             <SingleDatePicker date={createdAt} onDateChange={onDateChange} focused={calenderFocused} onFocusChange={onFocusChange} numberOfMonths={1} firstDayOfWeek={1} isOutsideRange={() => false} />
