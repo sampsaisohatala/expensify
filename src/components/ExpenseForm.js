@@ -5,17 +5,16 @@ import 'react-dates/lib/css/_datepicker.css';
 import 'react-dates/initialize';
 
 const ExpenseForm = (props) => {
-   const [description, setDescription] = useState('');
-   const [amount, setAmount] = useState('');
-   const [createdAt, setCreatedAt] = useState(moment());
+   const [description, setDescription] = useState(props.expense ? props.expense.description : '');
+   const [note, setNote] = useState(props.expense ? props.expense.note : '');
+   const [amount, setAmount] = useState(props.expense ? (props.expense.amount / 100).toString() : '');
+   const [createdAt, setCreatedAt] = useState(props.expense ? moment(props.expense.createdAt) : moment());
    const [calenderFocused, setCalenderFocused] = useState(false);
-   const [note, setNote] = useState('');
    const [error, setError] = useState('');
 
    const onDescriptionChange = (e) => {
       setDescription(e.target.value);
    };
-
    const onAmountChange = (e) => {
       const amount = e.target.value;
       if (!amount || amount.match(/^\d{1,}(\.\d{0,2})?$/)) {
