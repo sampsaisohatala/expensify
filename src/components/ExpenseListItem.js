@@ -3,20 +3,6 @@ import { Link } from 'react-router-dom';
 import moment from 'moment';
 import numeral from 'numeral';
 
-// load a locale
-numeral.register('locale', 'eu', {
-   delimiters: {
-      thousands: ' ',
-      decimal: ',',
-   },
-   currency: {
-      symbol: '€',
-   },
-});
-
-// switch between locales
-numeral.locale('eu');
-
 const ExpenseListItem = ({ id, description, amount, createdAt }) => (
    <div>
       <Link to={`/edit/${id}`}>
