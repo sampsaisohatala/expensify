@@ -1,4 +1,11 @@
-import { addExpense, editExpense, removeExpense } from '../../actions/expenses';
+import { createStore } from 'redux';
+import configureMockStore from 'redux-mock-store';
+import thunk from 'redux-thunk';
+import { addExpense, editExpense, removeExpense, startAddExpense } from '../../actions/expenses';
+import expensesTestData from '../fixtures/expenses';
+import database from '../../firebase/firebase';
+
+const createMockStore = configureMockStore([thunk]);
 
 /// Expense action tests
 
@@ -23,33 +30,78 @@ test('editExpense action', () => {
 });
 
 test('addExpense action with values', () => {
+   const result = addExpense(expensesTestData[1]);
+
+   expect(result).toEqual({
+      type: 'ADD_EXPENSE',
+      expense: expensesTestData[1],
+   });
+});
+
+// remember to add 'done' as argument to make test async
+test('should add expense to database and store', (done) => {
+   const store = createMockStore({});
    const expenseData = {
-      description: 'expense1',
-      note: 'note1',
-      amount: 123,
-      createdAt: 1000,
+      description: 'Candy',
+      note: 'Note for myself',
+      amount: 1000,
+      createdAt: 10000000,
    };
-   const result = addExpense(expenseData);
-
-   expect(result).toEqual({
-      type: 'ADD_EXPENSE',
-      expense: {
-         ...expenseData,
-         id: expect.any(String),
-      },
-   });
+   store
+      .dispatch(startAddExpense(expenseData))
+      .then(() => {
+         const actions = store.getActions();
+         expect(actions[0]).toEqual({
+            type: 'ADD_EXPENSE',
+            expense: {
+               id: expect.any(String),
+               ...expenseData,
+            },
+         });
+         return database.ref(`expenses/${actions[0].expense.id}`).once('value');
+      })
+      .then((snapshot) => {
+         expect(snapshot.val()).toEqual(expenseData);
+         done();
+      });
 });
 
-test('addExpense action without values', () => {
-   const result = addExpense();
-   expect(result).toEqual({
-      type: 'ADD_EXPENSE',
-      expense: {
-         id: expect.any(String),
-         description: '',
-         amount: 0,
-         note: '',
-         createdAt: 0,
-      },
-   });
+test('should add expense with defaaults to database and store', (done) => {
+   const store = createMockStore({});
+   const expenseDefaults = {
+      description: '',
+      note: '',
+      amount: 0,
+      createdAt: 0,
+   };
+   store
+      .dispatch(startAddExpense({}))
+      .then(() => {
+         const actions = store.getActions();
+         expect(actions[0]).toEqual({
+            type: 'ADD_EXPENSE',
+            expense: {
+               id: expect.any(String),
+               ...expenseDefaults,
+            },
+         });
+         return database.ref(`expenses/${actions[0].expense.id}`).once('value');
+      })
+      .then((snapshot) => {
+         expect(snapshot.val()).toEqual(expenseDefaults);
+         done();
+      });
 });
+// test('addExpense action without values', () => {
+//    const result = addExpense();
+//    expect(result).toEqual({
+//       type: 'ADD_EXPENSE',
+//       expense: {
+//          id: expect.any(String),
+//          description: '',
+//          amount: 0,
+//          note: '',
+//          createdAt: 0,
+//       },
+//    });
+// });
