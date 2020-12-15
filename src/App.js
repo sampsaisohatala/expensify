@@ -5,19 +5,7 @@ import configureStore from './store/configureStore';
 import 'normalize.css/normalize.css';
 import './styles/styles.scss';
 import 'react-dates/lib/css/_datepicker.css';
-import numeral from 'numeral';
-
-// Numeral settings
-numeral.register('locale', 'eu', {
-   delimiters: {
-      thousands: ' ',
-      decimal: ',',
-   },
-   currency: {
-      symbol: '€',
-   },
-});
-numeral.locale('eu');
+import './firebase/firebase';
 
 // Create store
 const store = configureStore();
