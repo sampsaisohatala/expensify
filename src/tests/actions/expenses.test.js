@@ -1,7 +1,7 @@
 import { createStore } from 'redux';
 import configureMockStore from 'redux-mock-store';
 import thunk from 'redux-thunk';
-import { addExpense, editExpense, removeExpense, startAddExpense, setExpenses, startSetExpenses, startRemoveExpense } from '../../actions/expenses';
+import { addExpense, editExpense, removeExpense, startAddExpense, setExpenses, startSetExpenses, startRemoveExpense, startEditExpense } from '../../actions/expenses';
 import expensesTestData from '../fixtures/expenses';
 import database from '../../firebase/firebase';
 
@@ -28,6 +28,25 @@ test('removeExpense action', () => {
    });
 });
 
+test('should remove expenses from database', (done) => {
+   const store = createMockStore({});
+   const id = expensesTestData[1].id;
+   store.dispatch(startRemoveExpense({ id })).then(() => {
+      const actions = store.getActions();
+      expect(actions[0]).toEqual({
+         type: 'REMOVE_EXPENSE',
+         id,
+      });
+      return database
+         .ref(`expenses/${id}`)
+         .once('value')
+         .then((snapshot) => {
+            expect(snapshot.val()).toBeFalsy();
+            done();
+         });
+   });
+});
+
 test('editExpense action', () => {
    const result = editExpense('123asd', { amout: 69, note: 'New note value' });
    expect(result).toEqual({
@@ -37,6 +56,32 @@ test('editExpense action', () => {
          amout: 69,
          note: 'New note value',
       },
+   });
+});
+
+test('should edit expenses from database', (done) => {
+   const store = createMockStore({});
+   const id = expensesTestData[0].id;
+   const updates = { description: 'Updated description' };
+   store.dispatch(startEditExpense(id, updates)).then(() => {
+      const actions = store.getActions();
+      expect(actions[0]).toEqual({
+         type: 'EDIT_EXPENSE',
+         id,
+         updates,
+      });
+      return database
+         .ref(`expenses/${id}`)
+         .once('value')
+         .then((snapshot) => {
+            expect(snapshot.val()).toEqual({
+               description: updates.description,
+               amount: expensesTestData[0].amount,
+               note: expensesTestData[0].note,
+               createdAt: expensesTestData[0].createdAt,
+            });
+            done();
+         });
    });
 });
 
@@ -121,24 +166,5 @@ test('should fetch expenses from firebase', (done) => {
          expenses: expensesTestData,
       });
       done();
-   });
-});
-
-test('should remove expenses from database', (done) => {
-   const store = createMockStore({});
-   const id = expensesTestData[1].id;
-   store.dispatch(startRemoveExpense({ id })).then(() => {
-      const actions = store.getActions();
-      expect(actions[0]).toEqual({
-         type: 'REMOVE_EXPENSE',
-         id,
-      });
-      return database
-         .ref(`expenses/${id}`)
-         .once('value')
-         .then((snapshot) => {
-            expect(snapshot.val()).toBeFalsy();
-            done();
-         });
    });
 });
